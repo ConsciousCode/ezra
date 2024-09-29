@@ -13,7 +13,7 @@ These are the long-term goals of the project:
 
 ## Todo
 This is a checklist of what to do so I can keep on-task and have clear markers of progress:
-- [ ] Server and client which can communicate with jsonl over unix socket.
+- [x] Server and client which can communicate with jsonl over unix socket.
 - [ ] Configurable LLM provider and model (copy work from my other projects).
 - [ ] Test what models do when forced to generate without user messages.
 - [ ] Client can join the inner monologue and send/receive messages.
