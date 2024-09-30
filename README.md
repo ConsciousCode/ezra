@@ -14,8 +14,10 @@ These are the long-term goals of the project:
 ## Todo
 This is a checklist of what to do so I can keep on-task and have clear markers of progress:
 - [x] Server and client which can communicate with jsonl over unix socket.
-- [ ] Configurable LLM provider and model (copy work from my other projects).
-- [ ] Test what models do when forced to generate without user messages.
+- [ ] ~~Configurable LLM provider and model (copy work from my other projects).~~
+  - I tried it, but trying to copy the old work just overwhelmed me and didn't integrate well with the new project. Better to start slow and small.
+- [x] Test what models do when forced to generate without user messages.
+  - Nothing, llama3.1 generates empty strings when it expects the user's turn and otherwise generates fluff. It needs narrative context in order to function.
 - [ ] Client can join the inner monologue and send/receive messages.
 - [ ] Store all messages in a sqlite database.
 - [ ] Client slash-commands using in-band RPC.

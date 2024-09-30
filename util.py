@@ -1,3 +1,4 @@
+from typing import Any, Protocol
 import asyncio
 import json
 
@@ -32,3 +33,30 @@ class JSONLStream:
     async def write(self, data):
         self.writer.write((json.dumps(data) + '\n').encode('utf8'))
         await self.writer.drain()
+
+class ToString(Protocol):
+    def __str__(self) -> str: ...
+
+def typename(obj):
+    return type(obj).__name__
+
+def to_value(value: str) -> Any:
+    match value.lower():
+        case 'false'|'f'|'no'|'n': return False
+        case 'true'|'t'|'yes'|'y': return True
+        case 'null'|'none': return None
+    try:
+        return int(value)
+    except ValueError:
+        try:
+            return float(value)
+        except ValueError:
+            return value
+
+def q_values(value: list[str]) -> Any:
+    '''Parse query parameters as values.'''
+    if value:
+        if len(value) > 1:
+            return list(map(to_value, value))
+        return to_value(value[0])
+    raise ValueError("Empty value")
