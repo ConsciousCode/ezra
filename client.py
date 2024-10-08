@@ -75,7 +75,7 @@ class EzraClient:
                 await asyncio.gather(*pending, return_exceptions=True)
 
 async def main():
-    path = "./ezra.sock"
+    path = "private/ezra.sock"
     client = EzraClient(path)
     await client.start()
 

@@ -19,6 +19,6 @@ This is a checklist of what to do so I can keep on-task and have clear markers o
 - [x] Test what models do when forced to generate without user messages.
   - Nothing, llama3.1 generates empty strings when it expects the user's turn and otherwise generates fluff. It needs narrative context in order to function.
 - [ ] Client can join the inner monologue and send/receive messages.
-- [ ] Store all messages in a sqlite database.
+- [x] Store all messages in a sqlite database.
 - [ ] Client slash-commands using in-band RPC.
 - 

@@ -1,2 +1,5 @@
+private/*
 __pycache__/
 *.sock
+*.db
+*.pyc
