@@ -50,13 +50,17 @@ class EzraClient:
                         break
                     case {"type": "text", "message": message}:
                         fprint("<", ("class:ezra", "ezra"), "> ", message)
+                    case {"type": "chunk", "content": content}:
+                        print(content, end='', flush=True)
+                    case {"type": "done"}:
+                        print()
                     case {"type": "error", "message": message}:
                         fprint(("class:error", message))
                     case {"type": "uncaught", "traceback": tb}:
                         fprint(("class:uncaught", tb))
                     
                     case data:
-                        fprint(("class: error", json.dumps(data)))
+                        fprint(("class:error", json.dumps(data)))
         except ConnectionResetError:
             pass
     
