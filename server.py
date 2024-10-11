@@ -198,6 +198,7 @@ def _msg_to_ollama(msg: ChatMessage) -> Iterator[ollama.Message]:
                 "role": "user",
                 "content": content
             }
+        
         case SelfMessage(content, tool_calls):
             yield {
                 "role": "assistant",
@@ -208,8 +209,7 @@ def _msg_to_ollama(msg: ChatMessage) -> Iterator[ollama.Message]:
                             "name": tc.origin.name,
                             "arguments": tc.origin.args
                         }
-                    }
-                    for tc in tool_calls
+                    } for tc in tool_calls
                 ]
             }
             for tc in tool_calls:
@@ -217,6 +217,7 @@ def _msg_to_ollama(msg: ChatMessage) -> Iterator[ollama.Message]:
                     "role": "tool",
                     "content": str(tc.result)
                 }
+        
         case _: assert_never(msg)
 
 def _convo_to_ollama(system: str, msgs: Iterable[ChatMessage]) -> Iterator[ollama.Message]:
@@ -233,11 +234,13 @@ def _convo_to_messages(rows: Iterable[ChatRow]) -> Iterator[ChatMessage]:
         match row.role:
             case "user":
                 yield UserMessage(content)
+            
             case "self":
                 yield SelfMessage(content, [
                     Outcome(ToolCall(tc['name'], tc['args']), None)
                         for tc in row.tool_calls
                 ])
+            
             case _: assert_never(row.role)
 
 def _messages_to_json(messages: Iterable[ChatMessage]) -> Iterator[dict[str, Any]]:
@@ -245,6 +248,7 @@ def _messages_to_json(messages: Iterable[ChatMessage]) -> Iterator[dict[str, Any
         match msg:
             case UserMessage(content):
                 yield {"role": "user", "content": content}
+            
             case SelfMessage(content, tool_calls):
                 m: dict = {"role": "assistant", "content": content}
                 if tool_calls:
@@ -256,6 +260,7 @@ def _messages_to_json(messages: Iterable[ChatMessage]) -> Iterator[dict[str, Any
                         } for tc in tool_calls
                     ]
                 yield m
+            
             case _: assert_never(msg)
 
 class Conversation:
@@ -277,7 +282,6 @@ class Conversation:
         
         content = []
         calls = []
-        print(self.messages)
         async for chunk in stream:
             match chunk:
                 case Chunk(text):
@@ -319,7 +323,6 @@ class Model:
         async for m in res:
             if msg := m.get('message'):
                 if (chunk := msg.get('content')) is not None:
-                #    print(chunk, end='', flush=True)
                     yield Chunk(chunk)
                 elif (calls := msg.get('tool_calls')) is not None:
                     print(calls)
