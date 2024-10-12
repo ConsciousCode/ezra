@@ -4,6 +4,7 @@ Connect to and interact with unix socket echo server
 
 import asyncio
 import json
+import re
 
 from prompt_toolkit import PromptSession, print_formatted_text
 from prompt_toolkit.formatted_text import FormattedText
@@ -37,10 +38,39 @@ class EzraClient:
                     ("class:user", "user"),
                     ("", "> ")
                 ]), style=style)
-                await stream.write({
-                    "type": "text",
-                    "message": data
-                })
+                if re.match('/(?!/)', data):
+                    cmd, *args = data[1:].split()
+                    match cmd:
+                        case 'close'|'exit'|'quit':
+                            await stream.write({"cmd": "close"})
+                            break
+                        
+                        case 'replay':
+                            await stream.write({"cmd": "replay"})
+                        
+                        case 'list':
+                            await stream.write({"cmd": "list"})
+                        
+                        case 'connect':
+                            if len(args) != 1:
+                                fprint(("class:error", "Usage: /connect <convo>"))
+                                continue
+                            await stream.write({
+                                "cmd": "connect",
+                                "convo": args[0]
+                            })
+                        
+                        case 'help':
+                            fprint(("class:ezra", "Commands:"))
+                            fprint(("class:ezra", "  /exit - Close the connection"))
+                            fprint(("class:ezra", "  /help - Display this help message"))
+                        
+                        case _:
+                            fprint(("class:error", "Unknown command"))
+                else:
+                    await stream.write({
+                        "message": data
+                    })
     
     async def output(self, stream: JSONLStream):
         try:
@@ -48,6 +78,16 @@ class EzraClient:
                 match await stream.read():
                     case {"type": "close"}:
                         break
+                    case {"type": "replay", "messages": messages}:
+                        for message in messages:
+                            match message['role']:
+                                case "user":
+                                    fprint("<", ("class:user", "user"), "> ", message['content'])
+                                case "assistant":
+                                    fprint("<", ("class:ezra", "ezra"), "> ", message['content'])
+                                
+                                case role:
+                                    fprint(("class:error", f"<{role}> {message['content']}"))
                     case {"type": "text", "message": message}:
                         fprint("<", ("class:ezra", "ezra"), "> ", message)
                     case {"type": "chunk", "content": content}:

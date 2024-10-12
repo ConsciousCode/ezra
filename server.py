@@ -81,7 +81,10 @@ class ChatRow:
     
     @property
     def tool_calls(self) -> list[Outcome]:
-        return json.loads(self._tool_calls.decode('utf8'))
+        if self._tool_calls:
+            return json.loads(self._tool_calls.decode('utf8'))
+        else:
+            return []
 
 class Database:
     def __init__(self, db: str):
@@ -388,10 +391,38 @@ class Server:
             data = await stream.read()
             print("recv", data)
             match data:
-                case {"type": "close"}:
+                case {"cmd": "close"}:
                     break
                 
-                case {"type": "connect", "convo": cid}:
+                case {"cmd": "list"}:
+                    await stream.write({
+                        "type": "result",
+                        "convos": [
+                            {
+                                "id": c.id,
+                                "summary": c.summary
+                            } for c in self.db.list_convo()
+                        ]
+                    })
+                
+                case {"cmd": "replay", "convo": cid}:
+                    if c := self.db.get_convo(cid):
+                        await stream.write({
+                            "type": "replay",
+                            "system": c.system,
+                            "messages": list(_messages_to_json(
+                                _convo_to_messages(
+                                    self.db.list_chat(cid)
+                                )
+                            ))
+                        })
+                    else:
+                        await stream.write({
+                            "type": "error",
+                            "message": "Unknown conversation"
+                        })
+                
+                case {"cmd": "connect", "convo": cid}:
                     if c := self.db.get_convo(cid):
                         convo = Conversation(self.db, cid)
                         await stream.write({
@@ -405,7 +436,7 @@ class Server:
                             "message": "Unknown conversation"
                         })
                 
-                case {"type": "text", "message": message}:
+                case {"message": message}:
                     if convo is None:
                         cid = self.db.start_convo(SYSTEM)
                         convo = Conversation(self.db, cid)
